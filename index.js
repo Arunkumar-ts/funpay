@@ -1,15 +1,15 @@
 import express from "express";
 import 'dotenv/config';
 import friends from "./src/routes/friends.js";
-import createDatabase from './src/config/db.js';
+import payments from "./src/routes/payment.js";
 
-createDatabase();
 const app = express();
 const PORT = 5000;
 
 app.use(express.json());
 
-app.use("/api/friend", friends);
+app.use("/api/friends", friends);
+app.use("/api/payments", payments);
 
 app.listen(PORT, ()=>{
     console.log(`Server started at http://localhost:${PORT}`);

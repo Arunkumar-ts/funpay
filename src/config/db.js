@@ -2,41 +2,32 @@ import 'dotenv/config';
 import sql from "mssql";
 
 const config = {
-  user: process.env.DB_USER || "sa",       // Use environment variables
-  password: process.env.DB_PASSWORD || "123456",
-  server: process.env.DB_SERVER || "localhost",
-  database: "master",  // Connect to master DB for creating new database
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD ,
+  server: process.env.DB_SERVER ,
+  database: "master",  
   options: {
-    encrypt: false, 
     trustServerCertificate: true,
-    enableArithAbort: true
+    enableArithAbort: true,
+    trustedConnection: false,
+    instancename:"SQLEXPRESS"
+  },
+  port:1433 
+};
+
+let pool;
+
+export const getConnection = async () => {
+  try {
+    if (!pool) {
+      pool = await sql.connect(config);
+      console.log('Connected to SQL Server');
+    }
+    return pool;
+  } catch (err) {
+    console.error('SQL Server connection error:', err);
+    throw err;
   }
 };
 
-async function createDatabase() {
-  let pool;
-  try {
-    pool = await sql.connect(config);
-    
-    // Check if database exists first
-    const result = await pool.request()
-      .query(`SELECT name FROM sys.databases WHERE name = 'paymentgateway'`);
-    
-    if (result.recordset.length === 0) {
-      await pool.request()
-        .query(`CREATE DATABASE paymentgateway`);
-      console.log("Database created successfully");
-    } else {
-      console.log("Database already exists");
-    }
-    
-  } catch (err) {
-    console.error("Error:", err.message);  // More specific error
-  } finally {
-    if (pool) {
-      await pool.close();
-    }
-  }
-}
-
-export default createDatabase;
+export { sql };
