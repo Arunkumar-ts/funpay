@@ -47,7 +47,7 @@ router.get("/", async (req, res) => {
 });
 
 // GET single friend payment list
-router.get("/:friend_id", async (req, res)=>{
+router.get("/:friend_id", async (req, res) => {
   const { friend_id } = req.params;
 
   if (!friend_id) {
@@ -56,19 +56,45 @@ router.get("/:friend_id", async (req, res)=>{
 
   try {
     const pool = await getConnection();
-    const result = await pool.request()
+
+    const allPaymentsResult = await pool.request()
       .input("friend_id", sql.Int, friend_id)
       .execute("GetSingleFriendPayDetails");
-    if (result.rowsAffected[0] === 0) {
-      return res.status(404).json({ error: "Friend not found" });
+
+    const thisMonthResult = await pool.request()
+      .input("friend_id", sql.Int, friend_id)
+      .query(`
+        SELECT * FROM Payments 
+        WHERE friend_id = @friend_id 
+          AND MONTH(date) = MONTH(GETDATE()) 
+          AND YEAR(date) = YEAR(GETDATE()) 
+        ORDER BY date DESC
+      `);
+
+    const thisYearResult = await pool.request()
+      .input("friend_id", sql.Int, friend_id)
+      .query(`
+        SELECT * FROM Payments 
+        WHERE friend_id = @friend_id 
+          AND YEAR(date) = YEAR(GETDATE()) 
+        ORDER BY date DESC
+      `);
+
+    if (allPaymentsResult.recordset.length === 0) {
+      return res.status(404).json({ error: "No payments found for this friend or friend not found" });
     }
 
-    res.status(200).json(result.recordset);
+    res.status(200).json({
+      allPayments: allPaymentsResult.recordset,
+      thisMonth: thisMonthResult.recordset,
+      thisYear: thisYearResult.recordset,
+    });
+
   } catch (error) {
     console.error("Error fetching friend's payments:", error);
     res.status(500).json({ error: "Failed to fetch friend's payments" });
   }
-})
+});
 
 // POST new payment
 router.post("/", async (req, res) => {

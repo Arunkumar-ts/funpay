@@ -15,6 +15,24 @@ router.get("/", async (req, res)=>{
     }
 });
 
+// GET SingleFriend
+router.get("/:id", async(req, res)=>{
+    const {id} = req.params;
+    try {
+        const pool = await getConnection();
+        const result = await pool.request()
+        .input("id", sql.Int, id)
+        .query('SELECT * FROM Friends WHERE Id=@id');
+        if (result.rowsAffected[0] === 0) {
+            return res.status(404).json({ error: "Friend not found" });
+        }
+        res.status(200).json(result.recordset);
+    } catch (error) {
+        console.error('Error fetching friends:', error);
+        res.status(500).json({ error: 'Failed to fetch data' });
+    }
+}) 
+
 // POST nes friend
 router.post("/", async (req, res)=>{
     const {name , email } = req.body;
