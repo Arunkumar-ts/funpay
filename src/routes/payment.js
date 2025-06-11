@@ -58,18 +58,7 @@ router.get("/:friend_id", async (req, res)=>{
     const pool = await getConnection();
     const result = await pool.request()
       .input("friend_id", sql.Int, friend_id)
-      .query(`
-        SELECT 
-          f.name AS friend_name,
-          p.amount,
-          p.date,
-          p.notes,
-          p.payment_id
-        FROM Payments p
-        JOIN Friends f ON p.friend_id = f.id
-        WHERE f.id = @friend_id
-        ORDER BY p.date DESC
-      `);
+      .execute("GetSingleFriendPayDetails");
     if (result.rowsAffected[0] === 0) {
       return res.status(404).json({ error: "Friend not found" });
     }
