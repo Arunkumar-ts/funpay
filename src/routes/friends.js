@@ -3,6 +3,7 @@ import {getConnection, sql} from '../config/db.js';
 
 const router = express.Router();
 
+// GET all friends
 router.get("/", async (req, res)=>{
     try {
         const pool = await getConnection();
@@ -14,6 +15,7 @@ router.get("/", async (req, res)=>{
     }
 });
 
+// POST nes friend
 router.post("/", async (req, res)=>{
     const {name , email } = req.body;
      if (!name || !email) {
@@ -38,6 +40,7 @@ router.post("/", async (req, res)=>{
     }    
 });
 
+// PUT update friend
 router.put("/:id", async (req, res)=>{
     const { id } = req.params;
     const { name, email } = req.body;
@@ -66,6 +69,7 @@ router.put("/:id", async (req, res)=>{
     }
 });
 
+// DELETE delete friend with this friend payment details
 router.delete("/:id", async (req, res)=>{
     const { id } = req.params;
     try {
